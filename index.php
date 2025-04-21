@@ -1,10 +1,12 @@
 <?php
 session_start();
+$isLoggedIn = isset($_SESSION['user']); // Cek apakah user sudah login
+
 if (isset($_GET['reset'])) {
     unset($_SESSION['hasil_kalkulasi']);
     unset($_SESSION['detail_kalkulasi']);
     unset($_SESSION['data_kendaraan']);
-    header("Location: index.php"); // ganti dengan nama file ini jika beda
+    header("Location: index.php");
     exit;
 }
 ?>
@@ -15,10 +17,7 @@ if (isset($_GET['reset'])) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ASRI - Asuransi Astra Safe Risk Indonesia</title>
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  >
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       background-image: url('assets/background.png');
@@ -26,96 +25,38 @@ if (isset($_GET['reset'])) {
       background-repeat: no-repeat;
       background-attachment: fixed;
     }
-    /* … style header/footer … */
+
+    .header {
+      background-color: #0d6efd;
+      color: white;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      height: 80px;
+      width: auto;
+      margin-right: 60px;
+    }
+
+    .footer {
+      background-color: #0d6efd;
+      padding: 18px 0;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+      color: white;
+    }
+
+    .footer-left {
+      text-align: left;
+      margin-left: 20px;
+      padding-left: 450px !important;
+      font-size: 20px;
+    }
   </style>
 </head>
 <body class="container py-4">
-
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="index.php">Beranda</a>
-      <div class="d-flex">
-        <?php if (isset($_SESSION['user'])): ?>
-          <!-- Kalau sudah login -->
-          <a class="btn btn-outline-danger" href="logout.php">Logout</a>
-        <?php else: ?>
-          <!-- Kalau belum login -->
-          <a class="btn btn-outline-primary me-2" href="login.php">Login</a>
-          <a class="btn btn-outline-success" href="register.php">Daftar</a>
-        <?php endif; ?>
-      </div>
-    </div>
-  </nav>
- 
-  <div>
-    <h1>Selamat Datang di Aplikasi Kami!</h1>
-    <?php if (isset($_SESSION['user'])): ?>
-      <p>Anda sudah login.</p>
-    <?php else: ?>
-      <p>Silakan login untuk mendaftarkan Asuransi Kendaraan anda</p>
-    <?php endif; ?>
-  </div>
-</body>
-</html>
-
-    <style>
-        body {
-        background-image: url('assets/background.png');
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-    }
-
-    .header {
-    background-color: #0d6efd;
-    color: white;
-    padding: 30px;
-    margin-bottom: 30px;
-}
-
-.logo {
-    height: 80px;
-    width: auto;
-    margin-right: 60px; /* makin gede, makin jauh dari tulisan */
-}
-
-.header {
-    background-color: #0d6efd;
-    color: white;
-    padding: 30px;
-    margin-bottom: 30px;
-}
-
-.logo {
-    height: 80px;
-    width: auto;
-    margin-right: 60px; /* makin gede, makin jauh dari tulisan */
-}
-
-.footer {
-    background-color: #0d6efd; /* warna latar lebih cerah */
-    padding: 18px 0;
-    position: relative;
-    bottom: 0;
-    width: 100%;
-    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
-}
-
-.footer-left {
-    text-align: left;
-    margin-left: 20;
-    padding-left: 450px !important; /* cukup kecil agar tetap rapi */
-    color: #333;
-    font-size: 20px;
-}
-
-
-
-</style>
-        
-</head>
-<body>
 
 <!-- Header -->
 <div class="header d-flex align-items-center justify-content-center">
@@ -126,12 +67,27 @@ if (isset($_GET['reset'])) {
     </div>
 </div>
 
-<!-- Main Container -->
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.php">Beranda</a>
+      <div class="d-flex">
+        <?php if ($isLoggedIn): ?>
+          <a class="btn btn-outline-danger" href="logout.php">Logout</a>
+        <?php else: ?>
+          <a class="btn btn-outline-primary me-2" href="login.php">Login</a>
+          <a class="btn btn-outline-success" href="register.php">Daftar</a>
+        <?php endif; ?>
+      </div>
+    </div>
+</nav>
+
+<!-- Konten -->
 <div class="container">
     <div class="row">
         <div class="col-md-8 offset-md-2">
 
-            <!-- Menampilkan Hasil Kalkulasi -->
+            <!-- Tampilkan Hasil Perhitungan -->
             <?php if (isset($_SESSION['hasil_kalkulasi'])): ?>
                 <div class="result-box mb-4">
                     <h3>Hasil Perhitungan</h3>
@@ -139,38 +95,38 @@ if (isset($_GET['reset'])) {
                     <h2 class="text-center text-primary">Rp <?= number_format($_SESSION['hasil_kalkulasi'], 0, ',', '.') ?> / tahun</h2>
                     
                     <?php if (isset($_SESSION['data_kendaraan'])): ?>
-        <div class="mt-3">
-            <h5>Data Kendaraan:</h5>
-            <ul>
-                <li>Merk: <?= ucfirst($_SESSION['data_kendaraan']['Merk']) ?></li>
-                <li>Tipe: <?= ucfirst($_SESSION['data_kendaraan']['Tipe']) ?></li>
-                <li>Tahun: <?= $_SESSION['data_kendaraan']['Tahun'] ?></li>
-                <li>Nilai Kendaraan: Rp <?= number_format($_SESSION['data_kendaraan']['Nilai Kendaraan'], 0, ',', '.') ?></li>
-                <li>Jenis Asuransi: <?= strtoupper($_SESSION['data_kendaraan']['Jenis Asuransi']) ?></li>
-                <li>Wilayah: <?= ucfirst(str_replace('_', ' ', $_SESSION['data_kendaraan']['Wilayah'])) ?></li>
-            </ul>
-        </div>
-    <?php endif; ?>
-    
+                    <div class="mt-3">
+                        <h5>Data Kendaraan:</h5>
+                        <ul>
+                            <li>Merk: <?= ucfirst($_SESSION['data_kendaraan']['Merk']) ?></li>
+                            <li>Tipe: <?= ucfirst($_SESSION['data_kendaraan']['Tipe']) ?></li>
+                            <li>Tahun: <?= $_SESSION['data_kendaraan']['Tahun'] ?></li>
+                            <li>Nilai Kendaraan: Rp <?= number_format($_SESSION['data_kendaraan']['Nilai Kendaraan'], 0, ',', '.') ?></li>
+                            <li>Jenis Asuransi: <?= strtoupper($_SESSION['data_kendaraan']['Jenis Asuransi']) ?></li>
+                            <li>Wilayah: <?= ucfirst(str_replace('_', ' ', $_SESSION['data_kendaraan']['Wilayah'])) ?></li>
+                        </ul>
+                    </div>
+                    <?php endif; ?>
+                    
                     <?php if (isset($_SESSION['detail_kalkulasi'])): ?>
-                        <div class="mt-3">
-                            <h5>Rincian Perhitungan:</h5>
-                            <ul>
-                                <?php foreach ($_SESSION['detail_kalkulasi'] as $key => $value): ?>
-                                    <?php if (is_array($value)): ?>
-                                        <li><?= $key ?>:
-                                            <ul>
-                                                <?php foreach ($value as $subKey => $subValue): ?>
-                                                    <li><?= $subKey ?>: Rp <?= number_format($subValue, 0, ',', '.') ?></li>
-                                                <?php endforeach; ?>
-                                            </ul>
-                                        </li>
-                                    <?php else: ?>
-                                        <li><?= $key ?>: Rp <?= number_format($value, 0, ',', '.') ?></li>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
+                    <div class="mt-3">
+                        <h5>Rincian Perhitungan:</h5>
+                        <ul>
+                            <?php foreach ($_SESSION['detail_kalkulasi'] as $key => $value): ?>
+                                <?php if (is_array($value)): ?>
+                                    <li><?= $key ?>:
+                                        <ul>
+                                            <?php foreach ($value as $subKey => $subValue): ?>
+                                                <li><?= $subKey ?>: Rp <?= number_format($subValue, 0, ',', '.') ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </li>
+                                <?php else: ?>
+                                    <li><?= $key ?>: Rp <?= number_format($value, 0, ',', '.') ?></li>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
                     <?php endif; ?>
                 </div>
                 <?php
@@ -186,8 +142,7 @@ if (isset($_GET['reset'])) {
                 </div>
                 <div class="card-body">
                     <form action="kalkulasi.php" method="post">
-
-                        <!-- Merk & Tipe -->
+                        <!-- Merk dan Tipe -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="merk_kendaraan" class="form-label">Merk Kendaraan</label>
@@ -226,31 +181,30 @@ if (isset($_GET['reset'])) {
                         <div class="mb-3">
                             <label for="nilai_kendaraan" class="form-label">Nilai Kendaraan (Rp)</label>
                             <input type="number" class="form-control" id="nilai_kendaraan" name="nilai_kendaraan" placeholder="Contoh: 200000000" required min="1000000">
-                            <div class="form-text">Masukkan nilai kendaraan tanpa titik atau koma</div>
                         </div>
 
-                        <!-- Jenis Asuransi & Lokasi -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="jenis_asuransi" class="form-label">Jenis Asuransi</label>
-                                <select class="form-select" id="jenis_asuransi" name="jenis_asuransi" required>
-                                    <option value="">Pilih Jenis Asuransi</option>
-                                    <option value="comprehensive">All Risk (Comprehensive)</option>
-                                    <option value="tlo">Total Loss Only (TLO)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="lokasi_penggunaan" class="form-label">Wilayah Penggunaan</label>
-                                <select class="form-select" id="lokasi_penggunaan" name="lokasi_penggunaan" required>
-                                    <option value="">Pilih Wilayah</option>
-                                    <option value="wilayah_1">Wilayah 1 (Sumatera dan sekitarnya)</option>
-                                    <option value="wilayah_2">Wilayah 2 (Jakarta, Jabar, Banten)</option>
-                                    <option value="wilayah_3">Wilayah 3 (Lainnya)</option>
-                                </select>
-                            </div>
+                        <!-- Jenis Asuransi -->
+                        <div class="mb-3">
+                            <label for="jenis_asuransi" class="form-label">Jenis Asuransi</label>
+                            <select class="form-select" id="jenis_asuransi" name="jenis_asuransi" required>
+                                <option value="">Pilih Jenis Asuransi</option>
+                                <option value="comprehensive">All Risk (Comprehensive)</option>
+                                <option value="tlo">Total Loss Only (TLO)</option>
+                            </select>
                         </div>
 
-                        <!-- Perluasan -->
+                        <!-- Wilayah Penggunaan -->
+                        <div class="mb-3">
+                            <label for="lokasi_penggunaan" class="form-label">Wilayah Penggunaan</label>
+                            <select class="form-select" id="lokasi_penggunaan" name="lokasi_penggunaan" required>
+                                <option value="">Pilih Wilayah</option>
+                                <option value="wilayah_1">Wilayah 1 (Sumatera dan sekitarnya)</option>
+                                <option value="wilayah_2">Wilayah 2 (Jakarta, Jabar, Banten)</option>
+                                <option value="wilayah_3">Wilayah 3 (Lainnya)</option>
+                            </select>
+                        </div>
+
+                        <!-- Perluasan Asuransi -->
                         <div class="mb-3">
                             <label class="form-label">Perluasan Asuransi</label>
                             <div class="form-check">
@@ -280,7 +234,6 @@ if (isset($_GET['reset'])) {
                             <button type="submit" class="btn btn-primary btn-lg">Hitung Premi Asuransi</button>
                             <a href="?reset=1" class="btn btn-outline-danger">Reset Form</a>
                         </div>
-
                     </form>
                 </div>
             </div>
@@ -291,9 +244,7 @@ if (isset($_GET['reset'])) {
 
 <!-- Footer -->
 <div class="footer">
-    <div class="container">
     <p class="footer-left">&copy; 2025 Kalkulator Asuransi Kendaraan Indonesia</p>
-    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -325,5 +276,4 @@ if (isset($_GET['reset'])) {
 
 </body>
 </html>
-
 
