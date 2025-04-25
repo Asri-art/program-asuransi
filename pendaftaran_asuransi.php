@@ -1,11 +1,14 @@
 <?php
 session_start();
 require_once 'database.php'; // Koneksi ke database
+require_once 'kalkulasi.php'; // Logika perhitungan premi
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
+
+$nilai_premi = 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $merk = $_POST['merk_kendaraan'];
@@ -14,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nilai = $_POST['nilai_kendaraan'];
     $jenis_asuransi = $_POST['jenis_asuransi'];
     $wilayah = $_POST['wilayah_penggunaan'];
-    $perluasan = isset($_POST['perluasan']) ? implode(',', $_POST['perluasan']) : null;
+    $perluasan = isset($_POST['perluasan']) ? $_POST['perluasan'] : [];
     $nama = $_POST['nama'];
     $alamat = $_POST['alamat'];
     $telepon = $_POST['nomor_telepon'];
@@ -23,27 +26,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $no_mesin = $_POST['no_mesin'];
     $warna = $_POST['warna_kendaraan'];
 
-    // Upload files
-    $upload_dir = 'uploads/';
-    $foto_stnk = $upload_dir . basename($_FILES['foto_stnk']['name']);
-    $foto_kendaraan = $upload_dir . basename($_FILES['foto_kendaraan']['name']);
-    $foto_sim_ktp = $upload_dir . basename($_FILES['foto_sim_ktp']['name']);
+    // Jika tombol "Hitung" diklik, hitung nilai premi
+    if (isset($_POST['hitung_premi'])) {
+        $nilai_premi = $nilai*$tahun;
+    }
 
-    if (move_uploaded_file($_FILES['foto_stnk']['tmp_name'], $foto_stnk) &&
-        move_uploaded_file($_FILES['foto_kendaraan']['tmp_name'], $foto_kendaraan) &&
-        move_uploaded_file($_FILES['foto_sim_ktp']['tmp_name'], $foto_sim_ktp)) {
+    // Jika tombol "Submit" diklik, proses penyimpanan data
+    if (isset($_POST['submit'])) {
+        // Upload files
+        $upload_dir = 'uploads/';
+        $foto_stnk = $upload_dir . basename($_FILES['foto_stnk']['name']);
+        $foto_kendaraan = $upload_dir . basename($_FILES['foto_kendaraan']['name']);
+        $foto_sim_ktp = $upload_dir . basename($_FILES['foto_sim_ktp']['name']);
 
-        // Simpan data ke database
-        $stmt = $conn->prepare("INSERT INTO kendaraan (pengguna_id, merk, tipe, tahun, nilai, jenis_asuransi, wilayah_penggunaan, perluasan_asuransi, no_polisi, no_rangka, no_mesin, warna, stnk_path, kendaraan_photo_path, sim_ktp_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ississsssssssss", $_SESSION['user_id'], $merk, $tipe, $tahun, $nilai, $jenis_asuransi, $wilayah, $perluasan, $no_polisi, $no_rangka, $no_mesin, $warna, $foto_stnk, $foto_kendaraan, $foto_sim_ktp);
+        if (move_uploaded_file($_FILES['foto_stnk']['tmp_name'], $foto_stnk) &&
+            move_uploaded_file($_FILES['foto_kendaraan']['tmp_name'], $foto_kendaraan) &&
+            move_uploaded_file($_FILES['foto_sim_ktp']['tmp_name'], $foto_sim_ktp)) {
 
-        if ($stmt->execute()) {
-            echo "<div class='alert alert-success'>Pendaftaran berhasil! Menunggu persetujuan kantor pusat.</div>";
+            // Simpan data ke database
+            $stmt = $conn->prepare("INSERT INTO kendaraan (pengguna_id, merk, tipe, tahun, nilai, jenis_asuransi, wilayah_penggunaan, perluasan_asuransi, no_polisi, no_rangka, no_mesin, warna, stnk_path, kendaraan_photo_path, sim_ktp_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ississsssssssss", $_SESSION['user_id'], $merk, $tipe, $tahun, $nilai, $jenis_asuransi, $wilayah, implode(',', $perluasan), $no_polisi, $no_rangka, $no_mesin, $warna, $foto_stnk, $foto_kendaraan, $foto_sim_ktp);
+
+            if ($stmt->execute()) {
+                echo "<div class='alert alert-success'>Pendaftaran berhasil! Menunggu persetujuan kantor pusat.</div>";
+            } else {
+                echo "<div class='alert alert-danger'>Terjadi kesalahan. Silakan coba lagi.</div>";
+            }
         } else {
-            echo "<div class='alert alert-danger'>Terjadi kesalahan. Silakan coba lagi.</div>";
+            echo "<div class='alert alert-danger'>Gagal mengunggah dokumen. Pastikan file yang diunggah valid.</div>";
         }
-    } else {
-        echo "<div class='alert alert-danger'>Gagal mengunggah dokumen. Pastikan file yang diunggah valid.</div>";
     }
 }
 ?>
@@ -138,16 +149,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-check">
                 <input type="checkbox" name="perluasan[]" value="kerusuhan" class="form-check-input" id="kerusuhan">
                 <label for="kerusuhan" class="form-check-label">Perlindungan Huru Hara dan Kerusuhan</label>
-                </div>
+            </div>
             <div class="form-check">
-            <input type="checkbox" name="perluasan[]" value="terorisme" class="form-check-input" id="terorisme">
-            <label for="terorisme" class="form-check-label">Perlindungan Terorisme dan Sabotase</label>
+                <input type="checkbox" name="perluasan[]" value="terorisme" class="form-check-input" id="terorisme">
+                <label for="terorisme" class="form-check-label">Perlindungan Terorisme dan Sabotase</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" name="perluasan[]" value="tanggung_jawab_hukum" class="form-check-input" id="tanggung_jawab_hukum">
+                <label for="tanggung_jawab_hukum" class="form-check-label">Tanggung Jawab Hukum Pihak Ketiga</label>
+            </div>
         </div>
-        <div class="form-check">
-            <input type="checkbox" name="perluasan[]" value="tanggung_jawab_hukum" class="form-check-input" id="tanggung_jawab_hukum">
-            <label for="tanggung_jawab_hukum" class="form-check-label">Tanggung Jawab Hukum Pihak Ketiga</label>
-        </div>
-
 
         <!-- Data Pribadi -->
         <h4>Data Pribadi</h4>
@@ -197,18 +208,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="foto_sim_ktp" class="form-label">Foto SIM/KTP</label>
             <input type="file" name="foto_sim_ktp" id="foto_sim_ktp" class="form-control" required>
         </div>
-         <!-- Keterangan Tambahan -->
-         <div class="mb-3">
+
+        <!-- Keterangan Tambahan -->
+        <div class="mb-3">
             <label for="keterangan_tambahan" class="form-label">Keterangan Tambahan</label>
             <textarea name="keterangan_tambahan" id="keterangan_tambahan" class="form-control" maxlength="200" placeholder="Isi keterangan tambahan jika diperlukan (maksimal 200 karakter)"></textarea>
         </div>
-         <!-- Perhitungan Nilai Premi -->
-         <div class="mb-3">
+
+        <!-- Tombol Hitung Premi -->
+        <button type="submit" name="hitung_premi" class="btn btn-secondary mb-3">Hitung</button>
+
+        <!-- Perhitungan Nilai Premi -->
+        <div class="mb-3">
             <label for="nilai_premi" class="form-label">Estimasi Nilai Premi (Rp)</label>
             <input type="text" name="nilai_premi" id="nilai_premi" class="form-control" readonly value="<?= number_format($nilai_premi, 0, ',', '.') ?>">
         </div>
 
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <!-- Tombol Submit -->
+        <button type="submit" name="submit" class="btn btn-primary">Submit</button>
     </form>
 </body>
-</html>
+</html>		
